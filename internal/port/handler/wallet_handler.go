@@ -17,23 +17,11 @@ import (
 
 type WalletUsecase interface {
 	// Deposit ...
-	Deposit(ctx context.Context, in depositInput) error
+	Deposit(ctx context.Context, in model.DepositInput) error
 	// Withdraw ...
-	Withdraw(ctx context.Context, in withdrawInput) error
+	Withdraw(ctx context.Context, in model.WithdrawInput) error
 	// Balance ...
 	Balance(ctx context.Context, walletID uuid.UUID) (int64, error)
-}
-
-// depositInput ...
-type depositInput struct {
-	WalletID uuid.UUID
-	Amount   int64
-}
-
-// withdrawInput ...
-type withdrawInput struct {
-	WalletID uuid.UUID
-	Amount   int64
 }
 
 type walletHandler struct {
@@ -96,7 +84,7 @@ func (h *walletHandler) HandleOperation() http.HandlerFunc {
 
 		switch t {
 		case validation.DepositType:
-			dep := depositInput{
+			dep := model.DepositInput{
 				WalletID: req.ValletId,
 				Amount:   req.Amount,
 			}
@@ -107,7 +95,7 @@ func (h *walletHandler) HandleOperation() http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 			return
 		case validation.WithdrawType:
-			wdraw := withdrawInput{
+			wdraw := model.WithdrawInput{
 				WalletID: req.ValletId,
 				Amount:   req.Amount,
 			}

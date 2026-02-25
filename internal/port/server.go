@@ -55,7 +55,9 @@ func (s *ServerAPI) Error(w http.ResponseWriter, r *http.Request, op string, err
 		slog.String("op", op),
 		slog.String("requestID:", middleware.GetRequestIDFromRequest(r)),
 	)
-	log.Warn(err.Error())
+	if err != nil {
+		log.Warn(err.Error())
+	}
 
 	var code int
 	switch {
@@ -82,6 +84,18 @@ func (s *ServerAPI) Error(w http.ResponseWriter, r *http.Request, op string, err
 		resp = ErrorResponse{
 			Code:    "BAD_REQUEST",
 			Message: "type operation not specified",
+		}
+	case errors.Is(err, walleterror.ErrInvalidAmount):
+		code = http.StatusBadRequest
+		resp = ErrorResponse{
+			Code:    "BAD_REQUEST",
+			Message: "invalid amount",
+		}
+	case errors.Is(err, walleterror.ErrInvalidValletID):
+		code = http.StatusBadRequest
+		resp = ErrorResponse{
+			Code:    "BAD_REQUEST",
+			Message: "invalid vallet id",
 		}
 	default:
 		code = http.StatusInternalServerError
