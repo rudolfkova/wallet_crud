@@ -118,7 +118,7 @@ func (h *walletHandler) HandleGetBalance() http.HandlerFunc {
 		idStr := r.PathValue("id")
 		walletID, err := uuid.Parse(idStr)
 		if err != nil {
-			h.server.Error(w, r, op, err)
+			h.server.Error(w, r, op, walleterror.ErrInvalidValletID)
 			return
 		}
 		if walletID == uuid.Nil {

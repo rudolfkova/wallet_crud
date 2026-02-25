@@ -4,11 +4,31 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"time"
+
+	txctx "wallet/internal/driver"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	txctx "wallet/internal/driver"
 )
+
+// PoolConfig параметры пула соединений.
+type PoolConfig struct {
+	MaxConns        int32
+	MinConns        int32
+	MaxConnLifetime time.Duration
+	MaxConnIdleTime time.Duration
+}
+
+// DefaultPoolConfig возвращает разумные дефолты для production.
+func DefaultPoolConfig() PoolConfig {
+	return PoolConfig{
+		MaxConns:        25,
+		MinConns:        5,
+		MaxConnLifetime: 1 * time.Hour,
+		MaxConnIdleTime: 30 * time.Minute,
+	}
+}
 
 // Store хранит пул соединений и реализует TxManager.
 type Store struct {
@@ -16,8 +36,18 @@ type Store struct {
 }
 
 // New создаёт Store и проверяет соединение с БД.
-func New(ctx context.Context, connString string) (*Store, error) {
-	pool, err := pgxpool.New(ctx, connString)
+func New(ctx context.Context, connString string, cfg PoolConfig) (*Store, error) {
+	poolCfg, err := pgxpool.ParseConfig(connString)
+	if err != nil {
+		return nil, fmt.Errorf("parse pool config: %w", err)
+	}
+
+	poolCfg.MaxConns = cfg.MaxConns
+	poolCfg.MinConns = cfg.MinConns
+	poolCfg.MaxConnLifetime = cfg.MaxConnLifetime
+	poolCfg.MaxConnIdleTime = cfg.MaxConnIdleTime
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("create pool: %w", err)
 	}
@@ -49,11 +79,9 @@ func (s *Store) RunInTx(ctx context.Context, fn func(ctx context.Context) error)
 		return fmt.Errorf("begin transaction: %w", err)
 	}
 
-	// кладём транзакцию в контекст, чтобы репозиторий мог её достать
 	ctx = context.WithValue(ctx, txctx.TxKey{}, tx)
 
 	if err := fn(ctx); err != nil {
-		// откат — логируем его ошибку, но возвращаем оригинальную
 		if rbErr := tx.Rollback(ctx); rbErr != nil {
 			return fmt.Errorf("rollback failed: %w (original: %w)", rbErr, err)
 		}

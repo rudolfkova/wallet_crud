@@ -38,7 +38,9 @@ func main() {
 	// --- Database ---
 	ctx := context.Background()
 
-	store, err := sqlstore.New(ctx, cfg.DatabaseURL)
+	pcfg := sqlstore.DefaultPoolConfig()
+
+	store, err := sqlstore.New(ctx, cfg.DatabaseURL, pcfg)
 	if err != nil {
 		log.Error("failed to connect to database", slog.String("err", err.Error()))
 		os.Exit(1)

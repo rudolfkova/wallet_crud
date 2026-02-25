@@ -17,3 +17,7 @@ gofmt:
 .PHONY: test
 test:
 	go test -v -race -timeout 30s ./...
+
+.PHONY: bench
+bench:
+	k6 run bench.js
