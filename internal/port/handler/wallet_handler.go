@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	walleterror "wallet/internal/error"
+	"wallet/internal/model"
 	"wallet/internal/port"
 	"wallet/internal/port/middleware"
 	"wallet/internal/validation"
@@ -120,5 +121,44 @@ func (h *walletHandler) HandleOperation() http.HandlerFunc {
 			h.server.Error(w, r, op, nil)
 			return
 		}
+	}
+}
+
+func (h *walletHandler) HandleGetBalance() http.HandlerFunc {
+	const op = "walletHandler.HandleGetBalance"
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		walletID, err := uuid.Parse(idStr)
+		if err != nil {
+			h.server.Error(w, r, op, err)
+			return
+		}
+		if walletID == uuid.Nil {
+			h.server.Error(w, r, op, walleterror.ErrInvalidValletID)
+			return
+		}
+
+		log := h.server.Logger().With(
+			slog.String("op", op),
+			slog.String("requestID", middleware.GetRequestIDFromRequest(r)),
+			slog.String("walletID", walletID.String()),
+		)
+
+		log.Info("get wallet")
+
+		ctx := r.Context()
+
+		balance, err := h.walletUsecase.Balance(ctx, walletID)
+		if err != nil {
+			h.server.Error(w, r, op, err)
+			return
+		}
+
+		balanceDTO := model.BalanceResponse{
+			WalletID: walletID,
+			Balance:  balance,
+		}
+
+		h.server.Respond(w, r, http.StatusOK, balanceDTO)
 	}
 }
