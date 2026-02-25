@@ -20,7 +20,7 @@ type Config struct {
 
 // parseConfig ...
 func parseConfig() (Config, error) {
-	if err := godotenv.Load(".env"); err != nil && !errors.Is(err, os.ErrNotExist) {
+	if err := godotenv.Load("config.env"); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return Config{}, fmt.Errorf("load env variables from file: %w", err)
 	}
 

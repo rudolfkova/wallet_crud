@@ -8,8 +8,8 @@ import (
 
 var (
 	// DepositType ...
-	DepositType = "DEPOSIT"
-	WithdrawType    = "WITHDRAW"
+	DepositType  = "DEPOSIT"
+	WithdrawType = "WITHDRAW"
 )
 
 func ValidationOperationType(t string) (string, error) {
