@@ -15,26 +15,21 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// querier — минимальный интерфейс для выполнения SQL.
-// Его реализуют и *pgxpool.Pool, и pgx.Tx — это позволяет писать
-// SQL-методы один раз, не дублируя if tx/else pool в каждом из них.
 type querier interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// WalletRepository реализует usecase.WalletRepository поверх PostgreSQL.
+// WalletRepository ...
 type WalletRepository struct {
 	pool *pgxpool.Pool
 }
 
-// New создаёт WalletRepository.
+// New ...
 func New(pool *pgxpool.Pool) *WalletRepository {
 	return &WalletRepository{pool: pool}
 }
 
-// q возвращает транзакцию из контекста если она есть,
-// иначе — пул. Весь репозиторий использует только этот метод для запросов.
 func (r *WalletRepository) q(ctx context.Context) querier {
 	if tx, ok := txctx.ExtractTx(ctx); ok {
 		return tx
@@ -42,14 +37,12 @@ func (r *WalletRepository) q(ctx context.Context) querier {
 	return r.pool
 }
 
-// GetBalance возвращает текущий баланс кошелька без блокировки.
-// Используется для чтения (GET /wallets/:id).
+// GetBalance ...
 func (r *WalletRepository) GetBalance(ctx context.Context, walletID uuid.UUID) (int64, error) {
 	return r.scanBalance(ctx, walletID, false)
 }
 
-// GetBalanceForUpdate возвращает баланс с блокировкой строки (SELECT ... FOR UPDATE).
-// Должен вызываться только внутри транзакции — блокирует строку до COMMIT/ROLLBACK.
+// GetBalanceForUpdate ...
 func (r *WalletRepository) GetBalanceForUpdate(ctx context.Context, walletID uuid.UUID) (int64, error) {
 	return r.scanBalance(ctx, walletID, true)
 }
@@ -72,8 +65,7 @@ func (r *WalletRepository) scanBalance(ctx context.Context, walletID uuid.UUID, 
 	return balance, nil
 }
 
-// UpdateBalance обновляет баланс кошелька.
-// Должен вызываться внутри транзакции после GetBalanceForUpdate.
+// UpdateBalance ...
 func (r *WalletRepository) UpdateBalance(ctx context.Context, walletID uuid.UUID, newBalance int64) error {
 	query := `UPDATE wallets SET balance = $1, updated_at = NOW() WHERE id = $2`
 
@@ -85,8 +77,7 @@ func (r *WalletRepository) UpdateBalance(ctx context.Context, walletID uuid.UUID
 	return nil
 }
 
-// SaveOperation сохраняет запись об операции в wallet_operations.
-// Должен вызываться внутри транзакции — атомарно с UpdateBalance.
+// SaveOperation ...
 func (r *WalletRepository) SaveOperation(ctx context.Context, op usecase.Operation) error {
 	query := `
 		INSERT INTO wallet_operations (id, wallet_id, operation, amount)
