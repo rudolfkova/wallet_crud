@@ -87,11 +87,9 @@ make test
 
 # интеграционные тесты (нужна TEST_DATABASE_URL в config.env)
 make test
-
+```
 
 ## Нагрузочное тестирование (k6)
-
-Установить k6: https://k6.io/docs/get-started/installation/
 
 ```bash
 make bench
