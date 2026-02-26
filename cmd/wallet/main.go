@@ -61,6 +61,7 @@ func main() {
 	mux.Handle("GET /api/v1/wallets/{id}", walletHandler.HandleGetBalance())
 
 	middleware.Use(middleware.RequestID)
+	middleware.Use(middleware.CORS)
 	httpHandler := middleware.Apply(mux)
 
 	srv := &http.Server{

@@ -14,10 +14,6 @@ lint:
 gofmt:
 	gofmt -w -s .
 
-.PHONY: test
-test:
-	go test -v -race -timeout 30s ./...
-
 .PHONY: bench
 bench:
 	k6 run bench.js
@@ -30,4 +26,4 @@ mocks:
 
 .PHONY: test
 test:
-	go test -race -timeout 30s ./...
+	go test -v -race -timeout 30s ./...

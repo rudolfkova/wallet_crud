@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// PoolConfig параметры пула соединений.
+// PoolConfig ...
 type PoolConfig struct {
 	MaxConns        int32
 	MinConns        int32
@@ -20,7 +20,7 @@ type PoolConfig struct {
 	MaxConnIdleTime time.Duration
 }
 
-// DefaultPoolConfig возвращает разумные дефолты для production.
+// DefaultPoolConfig ...
 func DefaultPoolConfig() PoolConfig {
 	return PoolConfig{
 		MaxConns:        25,
@@ -30,12 +30,12 @@ func DefaultPoolConfig() PoolConfig {
 	}
 }
 
-// Store хранит пул соединений и реализует TxManager.
+// Store ...
 type Store struct {
 	pool *pgxpool.Pool
 }
 
-// New создаёт Store и проверяет соединение с БД.
+// New ...
 func New(ctx context.Context, connString string, cfg PoolConfig) (*Store, error) {
 	poolCfg, err := pgxpool.ParseConfig(connString)
 	if err != nil {
@@ -59,18 +59,17 @@ func New(ctx context.Context, connString string, cfg PoolConfig) (*Store, error)
 	return &Store{pool: pool}, nil
 }
 
-// Close закрывает пул соединений.
+// Close ...
 func (s *Store) Close() {
 	s.pool.Close()
 }
 
-// Pool возвращает пул соединений — нужен для создания репозитория.
+// Pool ...
 func (s *Store) Pool() *pgxpool.Pool {
 	return s.pool
 }
 
-// RunInTx открывает транзакцию, кладёт её в контекст и вызывает fn.
-// Если fn вернула ошибку — откатывает, иначе коммитит.
+// RunInTx ...
 func (s *Store) RunInTx(ctx context.Context, fn func(ctx context.Context) error) error {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{
 		IsoLevel: pgx.ReadCommitted,

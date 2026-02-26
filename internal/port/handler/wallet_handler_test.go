@@ -10,10 +10,10 @@ import (
 	"net/http/httptest"
 	"testing"
 	walleterror "wallet/internal/error"
+	"wallet/internal/mocks"
 	"wallet/internal/model"
 	"wallet/internal/port"
 	"wallet/internal/port/handler"
-	mocks "wallet/mocks/usecase"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

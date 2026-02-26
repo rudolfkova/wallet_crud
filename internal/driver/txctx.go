@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// ключ для хранения транзакции в контексте
+// TxKey ...
 type TxKey struct{}
 
 // ExtractTx ...

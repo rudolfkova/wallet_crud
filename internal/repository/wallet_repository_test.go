@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,6 +20,10 @@ import (
 func setupDB(t *testing.T) (*pgxpool.Pool, *sqlstore.Store) {
 	t.Helper()
 
+	err := godotenv.Load("../../config.env")
+	if err != nil {
+		t.Skip("env not load")
+	}
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
 		t.Skip("TEST_DATABASE_URL not set, skipping integration tests")
